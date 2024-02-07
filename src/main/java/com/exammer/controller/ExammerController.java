@@ -43,6 +43,11 @@ public class ExammerController {
     public ResponseEntity<Object> getAnswerFormById(@PathVariable Long id) {
         return ResponseEntity.ok(exammerService.getAnswerFormById(id));
     }
+    
+    @GetMapping("/votercount/{sheet_name}/{question_number}")
+    public ResponseEntity<Object> getAnswerFormVoterCount(@PathVariable String sheet_name, @PathVariable Integer question_number) {
+    	return ResponseEntity.ok(exammerService.getAnswerFormVoterCount(sheet_name, question_number));
+    }
 
     @PutMapping("/answersheet/{id}")
     public ResponseEntity<Object> updateAnswerSheet(@PathVariable Long id, @RequestBody AnswerSheet answerSheet) {

@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.exammer.model.AnswerForm;
 import com.exammer.model.AnswerSheet;
+import com.exammer.model.VoterCounts;
 import com.zaxxer.hikari.HikariDataSource;
 
 import org.slf4j.Logger;
@@ -87,6 +88,61 @@ public class ExammerRepository
 		sheet = new AnswerSheet(sheet_name);
 		sheet.setAnswerForms(answer_forms);
 		return sheet;
+	}
+
+	public VoterCounts getAnswerFormVoterCount(String sheet_name, int question_number) throws Exception
+	{
+		VoterCounts result;
+		List<Integer> counts = new ArrayList<>();
+		
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		String question_id_select_query = "SELECT af.id FROM answer_forms AS af JOIN answer_sheets AS a ON af.sheet_id = a.id WHERE a.name = ? AND af.question_number = ?;";
+		String voter_counts_select_query = "SELECT v.* FROM voter_counts AS v WHERE v.question_id = ?;";
+		int question_id;
+		
+		try
+		{
+			ps = prepareStatement(question_id_select_query, exammer_db);
+			ps.setString(1, sheet_name);
+			ps.setInt(2, question_number);
+			rs = ps.executeQuery();
+			
+			if(rs.next())
+			{
+				question_id = rs.getInt("id");
+				
+				ps = prepareStatement(voter_counts_select_query, exammer_db);
+				ps.setInt(1, question_number);
+				rs = ps.executeQuery();
+				
+				if(rs.next())
+				{
+					counts.add(rs.getInt("option_a"));
+					counts.add(rs.getInt("option_b"));
+					counts.add(rs.getInt("option_c"));
+					counts.add(rs.getInt("option_d"));
+					counts.add(rs.getInt("option_e"));
+					result = new VoterCounts(counts, question_id);
+					return result;
+				}
+			}
+			
+		}
+		catch (SQLException e)
+		{
+			log.error(e.getMessage());
+			throw e;
+		}
+		finally
+		{
+			if (ps != null)
+			{
+				ps.getConnection().close();
+				ps.close();
+			}
+		}
+		return null;
 	}
 
 }
